@@ -1,7 +1,7 @@
 
 # Standard Transformer
 
-A standard transformer trained with backpropagation for text generation.
+A standard transformer for text generation.
 
 
 ## Installation
