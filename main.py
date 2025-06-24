@@ -14,15 +14,14 @@ import time
 nltk.download('punkt')
 
 # Hyperparameters
-#Backprop-logits shape[Batchsize, MaxLength, Vocab], targets shape: torch.Size([Batchsize, MaxLength])
-#PC=logits shape[Batchsize, MaxLength, Vocab],targets shape: torch.Size([Batchsize, MaxLength])
+
 batch_size = 64
 block_size = 256
 MAX_LENGTH = 64
 learning_rate = 1e-5
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 n_embd = 64
-n_head = 2
+n_head = 8
 n_layer = 4
 dropout = 0.1
 max_epochs = 20
@@ -31,10 +30,9 @@ temperature = 1.0
 
 
 # Directory setup
-# DATA_DIR = '/Users/bethtassew/Downloads/GPT/ptbdataset'
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__)) 
 DATA_DIR = os.path.join(BASE_DIR, "ptbdataset") 
-# DATA_DIR = os.path.join(DATA_DIR, 'ptbdataset')
 TOKENIZER_DIR = os.path.join(os.path.dirname(DATA_DIR), 'tokenized_ptb')
 os.makedirs(TOKENIZER_DIR, exist_ok=True)
 
