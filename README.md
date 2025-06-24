@@ -1,40 +1,36 @@
-Standard Transformer Setup Guide
-This guide provides instructions to clone and run the Standard Transformer project.
-Prerequisites
 
-Git installed on your system
-Python 3.8 or higher
-pip (Python package manager)
+# Standard Transformer
 
-Setup Instructions
+A standard transformer trained with backpropagation for text generation.
+
+
+## Installation
 
 Clone the Repository
+
+```bash
 git clone https://github.com/Betty987/Standard-Transformer.git
-
-
+```
 Navigate to the Project Directory
+
+```bash
 cd Standard-Transformer
+``` 
+Install Dependencies
 
+Ensure you have a virtual environment (optional but recommended):
 
-Install DependenciesEnsure you have a virtual environment (optional but recommended):
+```bash
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
-
+``` 
 Install required packages:
+
+```bash
 pip install -r requirements.txt
+``` 
 
-
-Run the Main Script
+Run the main script
+```bash
 python main.py
-
-
-
-Troubleshooting
-
-If requirements.txt is not present, check the repository for specific dependency installation instructions.
-Ensure your Python environment matches the project's requirements.
-
-Notes
-
-Refer to the repository's documentation for additional configuration or usage details.
-For issues, check the repository's Issues page or create a new issue.
+``` 
