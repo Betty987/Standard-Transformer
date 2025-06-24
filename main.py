@@ -138,10 +138,10 @@ class PennTreebankDataset(Dataset):
 
 # Create datasets with Subset
 train_dataset = PennTreebankDataset("train_ids.pkl", TOKENIZER_DIR, MAX_LENGTH)
-train_dataset = Subset(train_dataset, range(min(len(train_dataset), 50000)))
+# train_dataset = Subset(train_dataset, range(min(len(train_dataset), 50000)))
 val_dataset = PennTreebankDataset("valid_ids.pkl", TOKENIZER_DIR,  MAX_LENGTH)
 test_dataset = PennTreebankDataset("test_ids.pkl", TOKENIZER_DIR,  MAX_LENGTH)
-test_dataset = Subset(test_dataset, range(min(len(test_dataset), 25000)))
+# test_dataset = Subset(test_dataset, range(min(len(test_dataset), 25000)))
 
 # Create data loaders
 train_loader = DataLoader(
