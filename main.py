@@ -19,7 +19,6 @@ batch_size = 64
 block_size = 256
 MAX_LENGTH = 64
 learning_rate = 1e-5
-device = 'cuda' if torch.cuda.is_available() else 'cpu'
 n_embd = 64
 n_head = 8
 n_layer = 4
@@ -371,7 +370,6 @@ def evaluate(model, test_loader, tokenizer, max_batches=None, compute_metrics=Tr
 
 # Training phase
 model = LanguageModel()
-model = model.to(device)
 print(sum(p.numel() for p in model.parameters())/1e6, 'M parameters')
 
 optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate)
@@ -397,7 +395,6 @@ print("Model saved.")
 print("\nStarting evaluation...")
 model = LanguageModel()
 model.load_state_dict(torch.load(save_path),strict=False)
-model = model.to(device)
 model.eval()
 
 # Evaluate with metrics
@@ -406,7 +403,7 @@ test_loss,test_perplexity = evaluate(model, test_loader, tokenizer, max_batches=
 # Generate samples
 def generate(self, input_ids, max_new_tokens=50, temperature=1.0):
             model.eval()
-            input_tensor = input_ids.unsqueeze(0).to(device)  # Add batch dimension
+            input_tensor = input_ids.unsqueeze(0) # Add batch dimension
 
             for _ in range(max_new_tokens):
                 if input_tensor.size(1) > block_size:
