@@ -391,11 +391,7 @@ if os.path.exists(save_path):
 torch.save({"model_state": model.state_dict()}, save_path)
 print("Model saved.")
 
-# Evaluation phase
-print("\nStarting evaluation...")
-model = LanguageModel()
-model.load_state_dict(torch.load(save_path),strict=False)
-model.eval()
+
 
 # Evaluate with metrics
 test_loss,test_perplexity = evaluate(model, test_loader, tokenizer, max_batches=10, compute_metrics=True)
