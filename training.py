@@ -251,7 +251,7 @@ def main():
         avg_loss, avg_perplexity, throughput= train(model, train_loader, optimizer, epoch, device, tokenizer)
         
         if rank == 0:
-            print(f"Epoch {epoch + 1} completed | avg_train_loss {avg_loss:.4f} | avg_train_perplexity {avg_perplexity:.4f} | throughput {throughput:.0f} tokens/sec | tokens {throughput:,}")
+            print(f"Epoch {epoch + 1} completed | avg_train_loss {avg_loss:.4f} | avg_train_perplexity {avg_perplexity:.4f} | throughput {throughput:.0f} tokens/sec ")
     if rank == 0:
         if torch.cuda.is_available():
             torch.cuda.synchronize()
