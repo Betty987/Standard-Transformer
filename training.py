@@ -14,6 +14,7 @@ from torch.nn.parallel import DistributedDataParallel as DDP
 from data_preparation.config import Config
 from transformers import GPT2TokenizerFast
 from torch.utils.data import Dataset, DataLoader, Subset
+import psutil
 
 def calculate_model_flops(model, batch_size, seq_length, vocab_size):
     """
@@ -39,8 +40,8 @@ def calculate_model_flops(model, batch_size, seq_length, vocab_size):
             n_head = len(module.heads)
             break
 
-    if n_head is None:
-        n_head = 8  # Default fallback
+    # if n_head is None:
+    #     n_head = 1  # Default fallback
 
     B, T = batch_size, seq_length
 
@@ -189,7 +190,14 @@ def train(model, train_loader, optimizer, epoch, device, tokenizer=None):
         print(f"  Total FLOPs: {format_flops(total_flops)}")
         print(f"  FLOPs per second: {format_flops(flops_per_second)}/sec")
         print(f"  FLOPs per token: {total_flops/total_tokens:.0f}" if total_tokens > 0 else "  FLOPs per token: N/A")
-
+    if torch.cuda.is_available():
+        print(f"Allocated GPU memory: {torch.cuda.memory_allocated() / 1024 ** 2:.2f} MB")
+        print(f"Max allocated GPU memory: {torch.cuda.max_memory_allocated() / 1024 ** 2:.2f} MB")
+        print(f"Reserved GPU memory: {torch.cuda.memory_reserved() / 1024 ** 2:.2f} MB")
+        print(f"Max reserved GPU memory: {torch.cuda.max_memory_reserved() / 1024 ** 2:.2f} MB")
+    else:
+        process = psutil.Process(os.getpid())
+        print(f"CPU memory usage: {process.memory_info().rss / 1024 ** 2:.2f} MB")
     return avg_loss, avg_perplexity, throughput
     
 
