@@ -1,0 +1,10 @@
+{
+    "special_tokens": [
+        "[PAD]",
+        "[UNK]",
+        "[CLS]",
+        "[SEP]",
+        "[MASK]",
+        "[EOS]"
+    ]
+}
