@@ -16,7 +16,6 @@ from contextlib import nullcontext
 nltk.download('punkt')
 import os
 import requests
-
 import numpy as np
 
 # Hyperparameters
@@ -29,19 +28,12 @@ n_embd = 64
 n_head = 8
 n_layer = 6
 dropout = 0.1
-max_epochs = 2
+max_epochs = 20
 max_new_tokens = 200
 temperature = 0.8
 
 
 # Directory setup
-
-BASE_DIR = os.path.dirname(os.path.abspath(__file__)) 
-DATA_DIR = os.path.join(BASE_DIR, "ptbdataset") 
-TOKENIZER_DIR = os.path.join(os.path.dirname(DATA_DIR), 'tokenized_ptb')
-os.makedirs(TOKENIZER_DIR, exist_ok=True)
-
-
 input_file_path = os.path.join(os.path.dirname(__file__), 'input.txt')
 if not os.path.exists(input_file_path):
     data_url = 'https://raw.githubusercontent.com/karpathy/char-rnn/master/data/tinyshakespeare/input.txt'
@@ -210,8 +202,8 @@ def train(model, optimizer, epoch, num_batches=100):
     total_loss = 0
     total_batches = 0
     for batch_idx in range(num_batches):
-        xb, yb = get_batch('train')
-        logits, loss = model(xb, yb)
+        input_ids,targets = get_batch('train')
+        logits, loss = model(input_ids, targets)
         optimizer.zero_grad(set_to_none=True)
         loss.backward()
         optimizer.step()
@@ -242,24 +234,22 @@ def compute_text_metrics(predictions, targets):
     print(f"BLEU Score: {bleu:.4f}")
 
 @torch.no_grad()
-def evaluate(model, test_loader, tokenizer, max_batches=None, compute_metrics=True):
+def evaluate(model,num_batches=100):
     start_time = time.time()
     model.eval()
     total_loss = 0
     total_batches = 0
-    pad_token_id = tokenizer.token_to_id("[PAD]")
     decoded_targets, decoded_predictions = [], []
-    if max_batches is None:
-        print(f"Evaluating on the full test set...")
-    else:
-        print(f"Evaluating on up to {max_batches} batches...")
+    # if max_batches is None:
+    #     print(f"Evaluating on the full test set...")
+    # else:
+    #     print(f"Evaluating on up to {max_batches} batches...")
 
-    for batch_idx, batch in enumerate(test_loader):
-        if max_batches is not None and batch_idx >= max_batches:
-            break
+    for batch_idx in range(num_batches):
+        # if max_batches is not None and batch_idx >= max_batches:
+        #     break
 
-        input_ids = batch['input_ids']
-        targets = batch['target_ids']
+        input_ids, targets = get_batch('val')
 
         # Compute loss
         logits, loss = model(input_ids, targets)
@@ -317,7 +307,8 @@ print("Model saved.")
 
 
 # Evaluate with metrics
-# test_loss, test_perplexity = evaluate(model, max_batches=10)
+print("starting evaluation")
+test_loss, test_perplexity = evaluate(model,num_batches=100)
 
 @torch.no_grad()
 def generate(self, idx, max_new_tokens, temperature=1.0, top_k=None):
@@ -364,6 +355,7 @@ start_ids = encode(start)
 x = (torch.tensor(start_ids, dtype=torch.long, device=device)[None, ...])
 
 # run generation
+print("start generation")
 with torch.no_grad():
     with ctx:
         for k in range(num_samples):
