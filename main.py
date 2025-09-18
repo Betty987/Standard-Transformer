@@ -22,7 +22,6 @@ import numpy as np
 # Hyperparameters
 
 batch_size = 8
-# vocab_size = 50340
 block_size = 256
 MAX_LENGTH = 256
 learning_rate = 1e-3
@@ -30,7 +29,7 @@ n_embd = 64
 n_head = 8
 n_layer = 6
 dropout = 0.1
-max_epochs = 20
+max_epochs = 2
 max_new_tokens = 200
 temperature = 0.8
 
@@ -42,158 +41,7 @@ DATA_DIR = os.path.join(BASE_DIR, "ptbdataset")
 TOKENIZER_DIR = os.path.join(os.path.dirname(DATA_DIR), 'tokenized_ptb')
 os.makedirs(TOKENIZER_DIR, exist_ok=True)
 
-# # BPE Tokenizer class
-# class BPETokenizer:
-#     def __init__(self):
-#         self.tokenizer = Tokenizer(models.BPE(unk_token="[UNK]"))
-#         self.tokenizer.pre_tokenizer = pre_tokenizers.Whitespace()
-#         self.special_tokens = ["[PAD]", "[UNK]", "[CLS]", "[SEP]", "[MASK]", "[EOS]"]
 
-#     def train_and_save(self):
-#         tokenizer_path = os.path.join(TOKENIZER_DIR, "tokenizer.json")
-#         if os.path.exists(tokenizer_path):
-#             print(f"Tokenizer already exists at {tokenizer_path}, skipping training.")
-#             return
-        
-#         train_path = os.path.join(DATA_DIR, "ptb.train.txt")
-#         if not os.path.exists(train_path):
-#             raise FileNotFoundError(f"Train file not found: {train_path}")
-        
-#         with open(train_path, "r", encoding="utf-8") as f:
-#             sentences = [line.strip() for line in f if line.strip()]
-
-#         trainer = trainers.BpeTrainer(
-#             special_tokens=self.special_tokens,
-#             vocab_size=4000,
-#             min_frequency=2
-#         )
-#         self.tokenizer.train_from_iterator(sentences, trainer=trainer)
-#         tokenizer_path = os.path.join(TOKENIZER_DIR, "tokenizer.json")
-#         self.tokenizer.save(tokenizer_path)
-
-#         metadata = {"special_tokens": self.special_tokens}
-#         metadata_path = os.path.join(TOKENIZER_DIR, "metadata.json")
-#         with open(metadata_path, "w", encoding="utf-8") as f:
-#             json.dump(metadata, f, indent=4)
-
-#         print(f"Tokenizer trained and saved to {tokenizer_path}")
-#         print(f"Metadata saved to {metadata_path}")
-
-#     def tokenize_and_save(self, subset_name):
-#         tokenizer_path = os.path.join(TOKENIZER_DIR, "tokenizer.json")
-#         if not os.path.exists(tokenizer_path):
-#             raise FileNotFoundError(f"Tokenizer file not found: {tokenizer_path}")
-#         self.tokenizer = Tokenizer.from_file(tokenizer_path)
-        
-#         subset_path = os.path.join(DATA_DIR, f"ptb.{subset_name}.txt")
-#         if not os.path.exists(subset_path):
-#             raise FileNotFoundError(f"{subset_name}.txt not found in {DATA_DIR}")
-        
-#         with open(subset_path, "r", encoding="utf-8") as f:
-#             sep_id = self.tokenizer.token_to_id("[EOS]")
-#             if sep_id is None:
-#                 raise ValueError("Special token [EOS] not found in tokenizer vocabulary.")
-            
-#             tokenized = [
-#                 self.tokenizer.encode(line.strip()).ids + [sep_id]
-#                 for line in f if line.strip()
-#             ]
-
-#         output_path = os.path.join(TOKENIZER_DIR, f"{subset_name}_ids.pkl")
-#         if os.path.exists(output_path):
-#             print(f"Tokenized IDs already exist for {subset_name} at {output_path}, skipping.")
-#             return 
-
-#         with open(output_path, "wb") as f:
-#             pickle.dump(tokenized, f)
-
-#         print(f"Tokenized ptb.{subset_name}.txt and saved IDs to {output_path}")
-# # Initialize and train tokenizer
-# bpe = BPETokenizer()
-# bpe.train_and_save()
-
-# # Tokenize datasets
-# bpe.tokenize_and_save("train")
-# bpe.tokenize_and_save("valid")
-# bpe.tokenize_and_save("test")        
-
-# # Penn Treebank Dataset class
-# class PennTreebankDataset(Dataset):
-#     def __init__(self, tokenized_file, tokenizer_dir, block_size):
-#         self.tokenizer_dir = tokenizer_dir
-#         self.block_size = block_size
-
-#         tokenized_file_path = os.path.join(self.tokenizer_dir, tokenized_file)
-#         if not os.path.exists(tokenized_file_path):
-#             raise FileNotFoundError(f"Tokenized file not found: {tokenized_file_path}")
-
-#         with open(tokenized_file_path, 'rb') as f:
-#             self.sequences = pickle.load(f)
-
-#         self.sequences = [seq for seq in self.sequences if len(seq) > 1]
-
-#     def __len__(self):
-#         return len(self.sequences)
-
-#     def __getitem__(self, idx):
-#         seq = self.sequences[idx]
-#         input_ids = torch.tensor(seq[:-1][:self.block_size], dtype=torch.long)
-#         target_ids = torch.tensor(seq[1:][:self.block_size], dtype=torch.long)
-        
-#         return {"input_ids": input_ids, "target_ids": target_ids}
-
-# # Create datasets with Subset
-# train_dataset = PennTreebankDataset("train_ids.pkl", TOKENIZER_DIR, MAX_LENGTH)
-# # train_dataset = Subset(train_dataset, range(min(len(train_dataset), 50000)))
-# val_dataset = PennTreebankDataset("valid_ids.pkl", TOKENIZER_DIR,  MAX_LENGTH)
-# test_dataset = PennTreebankDataset("test_ids.pkl", TOKENIZER_DIR,  MAX_LENGTH)
-# # test_dataset = Subset(test_dataset, range(min(len(test_dataset), 25000)))
-
-# # Create data loaders
-# train_loader = DataLoader(
-#     train_dataset,
-#     batch_size=batch_size,
-#     shuffle=True,
-#     collate_fn=lambda batch: pad_collate_fn(batch, pad_token_id)
-# )
-# valid_loader = DataLoader(
-#     val_dataset,
-#     batch_size=batch_size,
-#     collate_fn=lambda batch: pad_collate_fn(batch, pad_token_id)
-# )
-# test_loader = DataLoader(
-#     test_dataset,
-#     batch_size=batch_size,
-#     collate_fn=lambda batch: pad_collate_fn(batch, pad_token_id)
-# )
-# # Padding collate function
-# def pad_collate_fn(batch, pad_token_id=0):
-#     input_seqs = [item["input_ids"] for item in batch]
-#     target_seqs = [item["target_ids"] for item in batch]
-
-#     input_seqs = pad_sequence(input_seqs, batch_first=True, padding_value=pad_token_id)
-#     target_seqs = pad_sequence(target_seqs, batch_first=True, padding_value=pad_token_id)
-
-#     return {"input_ids": input_seqs, "target_ids": target_seqs}
-
-# def decode_ids(tokenizer, ids, stop_at_eos = True):
-#     text = tokenizer.decode(ids, skip_special_tokens=True)
-#     if stop_at_eos and "[EOS]" in text:
-#         text = text.split("[EOS]")[0].strip()
-#     return text
-
-# # Load tokenizer function
-# def load_tokenizer():
-#     tokenizer_path = os.path.join(TOKENIZER_DIR, "tokenizer.json")
-#     return Tokenizer.from_file(tokenizer_path)
-
-
-# # Load tokenizer
-# tokenizer = load_tokenizer()
-# vocab_size = tokenizer.get_vocab_size()
-# pad_token_id = tokenizer.token_to_id("[PAD]")
-# eos_token_id = tokenizer.token_to_id("[EOS]")
-# download the tiny shakespeare dataset
 input_file_path = os.path.join(os.path.dirname(__file__), 'input.txt')
 if not os.path.exists(input_file_path):
     data_url = 'https://raw.githubusercontent.com/karpathy/char-rnn/master/data/tinyshakespeare/input.txt'
@@ -212,7 +60,7 @@ train_ids = enc.encode_ordinary(train_data)
 val_ids = enc.encode_ordinary(val_data)
 print(f"train has {len(train_ids):,} tokens")
 print(f"val has {len(val_ids):,} tokens")
-
+vocab_size = enc.n_vocab
 # export to bin files in 'data' directory
 data_dir = os.path.join(os.path.dirname(__file__), 'data')
 os.makedirs(data_dir, exist_ok=True)
@@ -318,13 +166,6 @@ class LanguageModel(nn.Module):
         x = self.dropout(tok_emb + pos_emb)
         x = self.blocks(x)
         x = self.ln_f(x)
-        # if targets is None:
-        #     loss = None
-        # else:
-        #     B, T, C = logits.shape
-        #     logits_flat = logits.view(B*T, C)
-        #     targets_flat = targets.view(B*T)
-        #     loss = F.cross_entropy(logits_flat, targets_flat)
         if targets is not None:
             # if we are given some desired targets also calculate the loss
             logits = self.lm_head(x)
@@ -451,7 +292,6 @@ def evaluate(model, test_loader, tokenizer, max_batches=None, compute_metrics=Tr
 
 
 # Training phase
-vocab_size = enc.n_vocab 
 model = LanguageModel()
 print(sum(p.numel() for p in model.parameters())/1e6, 'M parameters')
 
@@ -535,49 +375,3 @@ with torch.no_grad():
 
 
 
-
-# # Generate samples
-def generate(self, input_ids, max_new_tokens=50, temperature=1.0):
-            model.eval()
-            input_tensor = input_ids.unsqueeze(0) # Add batch dimension
-
-            for _ in range(max_new_tokens):
-                if input_tensor.size(1) > block_size:
-                    input_tensor = input_tensor[:, -block_size:]
-                with torch.no_grad():
-                    logits, _ = self(input_tensor)
-                    logits = logits[:, -1, :] / temperature
-                    probs = F.softmax(logits, dim=-1)
-                    next_token = torch.multinomial(probs, num_samples=1)
-                    input_tensor = torch.cat((input_tensor, next_token), dim=1)
-                # if next_token.item() == eos_token_id:
-                #     break
-            
-            return input_tensor[0] 
-for batch_idx, batch in enumerate(test_loader):
-    input_ids = batch["input_ids"]
-    target_ids = batch["target_ids"]
-    break 
-
-num_samples = 5
-prompt_len = 4
-i = 64
-
-for i in range(num_samples):
-    prompt_ids = input_ids[i][:prompt_len]
-    generated_ids = generate(model,prompt_ids, max_new_tokens= 50, temperature=0.7)
-
-    target_continuation = target_ids[i][prompt_len:]
-    target_continuation = target_continuation[target_continuation != pad_token_id].tolist()
-
-    generated_continuation = generated_ids[prompt_len:].tolist()
-
-    # Decode all
-    prompt_str = decode_ids(tokenizer, prompt_ids.tolist())
-    target_str = decode_ids(tokenizer, target_continuation, stop_at_eos=True)
-    predict_str = decode_ids(tokenizer, generated_continuation, stop_at_eos=True)
-
-    print(f"\n[Batch {batch_idx + 1}, Sample {i + 1}]")
-    print(f"[PROMPT ]: {prompt_str}")
-    print(f"[TARGET ]: {target_str}")
-    print(f"[PREDICT]: {predict_str}")
