@@ -50,7 +50,7 @@ def evaluate(model, test_loader, max_batches=None, device=None):
         if (not dist.is_initialized() or dist.get_rank() == 0) and (batch_idx + 1) % 10 == 0:
             print(
                 f"  Batch {batch_idx + 1}/{len(test_loader)} | "
-                f"test_loss {loss:.4f} | test_perplexity {perplexity:.4f}",
+                f"Test Loss {loss:.4f} | Test Perplexity {perplexity:.4f}",
                 flush=True
             )
 
