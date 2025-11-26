@@ -119,25 +119,23 @@ def main():
             print(f"\nEpoch {epoch + 1}/{config.max_epochs}")
         
         avg_loss, avg_perplexity = train(model, train_loader, optimizer, device)
-
+        train_losses.append(avg_loss)
+        train_perplexities.append(avg_perplexity)
+        
+        with torch.no_grad():
+                val_loss, val_perplexity = evaluate(
+                    model, valid_loader, max_batches=None, device=device
+                ) 
+        val_losses.append(val_loss)
+        val_perplexities.append(val_perplexity)
+            
         if rank == 0:
             print(
-                f"Epoch {epoch + 1} completed | "
-                f"Avg Train Loss {avg_loss:.4f} | "
-                f"Avg Train Perplexity {avg_perplexity:.4f}"
+                f"Epoch {epoch + 1}/{config.max_epochs} | "
+                f"Train Loss: {avg_loss:.4f} | Train Perplexity: {avg_perplexity:.4f} | "
+                f"Val Loss: {val_loss:.4f} | Val Perplexity: {val_perplexity:.4f}"
             )
-            train_losses.append(avg_loss)
-            train_perplexities.append(avg_perplexity)
             
-            eval_model = model.module if isinstance(model, DDP) else model
-            
-            with torch.no_grad():
-                val_loss, val_perplexity = evaluate(
-                    eval_model, valid_loader, max_batches=None, device=device
-                ) 
-            val_losses.append(val_loss)
-            val_perplexities.append(val_perplexity)
-        
     # Final summary
     if rank == 0:
         if torch.cuda.is_available():
