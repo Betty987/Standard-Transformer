@@ -1,5 +1,7 @@
 import gc
 import os
+import numpy as np
+import random
 import torch
 from bert_score import score as bertscore
 from model_architecture.model import LanguageModel
@@ -75,3 +77,24 @@ def load_model(model_path,config):
     model.load_state_dict(state_dict, strict=True)
     print(f"Model loaded successfully from {model_path}")
     return model
+
+def set_seed(seed: int = 42):
+    """
+    Set random seed for reproducibility.
+    
+    Args:
+        seed (int): Random seed value
+    """
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    
+    # For CUDA
+    torch.cuda.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)  
+    
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+    
+    # For Python hash randomization
+    os.environ['PYTHONHASHSEED'] = str(seed)

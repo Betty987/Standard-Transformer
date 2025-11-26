@@ -5,7 +5,7 @@ import argparse
 import torch.distributed as dist
 from torch.nn.parallel import DistributedDataParallel as DDP
 
-from utils.model_utils import cleanup_memory, setup_device
+from utils.model_utils import cleanup_memory, setup_device, set_seed
 from model_architecture.config import GPTConfig
 from model_architecture.model import LanguageModel
 from data_preparation.dataloader import get_loaders
@@ -56,6 +56,7 @@ def train(model, train_loader, optimizer, device):
 
 # Main Training Loop
 def main():
+    set_seed(42)
     parser = argparse.ArgumentParser()
     parser.add_argument('--flash', action='store_true', 
                         help='Enable FlashAttention (not implemented in this model)')
