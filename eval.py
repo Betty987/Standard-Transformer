@@ -7,7 +7,7 @@ import torch.distributed as dist
 
 from torch.nn.parallel import DistributedDataParallel as DDP
 from data_preparation.dataloader import get_loaders
-from utils.model_utils import setup_device, load_model
+from utils.model_utils import setup_device, load_model, set_seed
 from model_architecture.config import GPTConfig
 from data_preparation.config import vocab_size
 
@@ -50,7 +50,7 @@ def evaluate(model, test_loader, max_batches=None, device=None):
         if (not dist.is_initialized() or dist.get_rank() == 0) and (batch_idx + 1) % 10 == 0:
             print(
                 f"  Batch {batch_idx + 1}/{len(test_loader)} | "
-                f"test_loss {loss:.4f} | test_perplexity {perplexity:.4f}",
+                f"Test Loss {loss:.4f} | Test Perplexity {perplexity:.4f}",
                 flush=True
             )
 
@@ -71,6 +71,7 @@ def evaluate(model, test_loader, max_batches=None, device=None):
     return avg_loss,avg_perplexity
     
 def main():
+    set_seed(42)
     """Entry point for evaluating the predictive coding transformer model."""
     parser = argparse.ArgumentParser()
     parser.add_argument('--flash', action='store_true', help='Enable FlashAttention for attention layers')

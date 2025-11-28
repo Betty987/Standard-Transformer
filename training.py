@@ -5,11 +5,13 @@ import argparse
 import torch.distributed as dist
 from torch.nn.parallel import DistributedDataParallel as DDP
 
-from utils.model_utils import cleanup_memory, setup_device
+from utils.model_utils import cleanup_memory, setup_device, set_seed
 from model_architecture.config import GPTConfig
 from model_architecture.model import LanguageModel
 from data_preparation.dataloader import get_loaders
 from data_preparation.config import vocab_size
+from eval import evaluate
+from visualization import plot_metrics
 
 # Training Step
 def train(model, train_loader, optimizer, device):
@@ -38,7 +40,8 @@ def train(model, train_loader, optimizer, device):
         if (not dist.is_initialized() or dist.get_rank() == 0) and (batch_idx + 1) % 10 == 0:
             print(
                 f"  Batch {batch_idx + 1}/{len(train_loader)} | "
-                f"train_loss {loss:.4f} | train_perplexity {perplexity:.4f}")
+                f"Train Loss {loss:.4f} | Train Perplexity {perplexity:.4f}"
+            )
 
         cleanup_memory()
 
@@ -53,6 +56,7 @@ def train(model, train_loader, optimizer, device):
 
 # Main Training Loop
 def main():
+    set_seed(42)
     parser = argparse.ArgumentParser()
     parser.add_argument('--flash', action='store_true', 
                         help='Enable FlashAttention (not implemented in this model)')
@@ -74,7 +78,7 @@ def main():
         n_head = 8,
         n_layer = 6,
         dropout= 0.1,
-        max_epochs = 1,
+        max_epochs = 2,
         max_new_tokens = 50,
         temperature = 0.8
     )
@@ -86,9 +90,14 @@ def main():
         model = DDP(model, device_ids=[local_rank], output_device=local_rank)
     
     # Data
-    train_loader, _, _ = get_loaders(distributed=use_ddp)
+    train_loader, valid_loader, _ = get_loaders(distributed=use_ddp)
     optimizer = torch.optim.AdamW(model.parameters(), lr=config.learning_rate)
-       
+    
+    train_losses = []
+    val_losses = []
+    train_perplexities = []
+    val_perplexities = []  
+
     rank = dist.get_rank() if dist.is_initialized() else 0
     
     # Print model info from rank 0
@@ -111,14 +120,23 @@ def main():
             print(f"\nEpoch {epoch + 1}/{config.max_epochs}")
         
         avg_loss, avg_perplexity = train(model, train_loader, optimizer, device)
-
+        train_losses.append(avg_loss)
+        train_perplexities.append(avg_perplexity)
+        
+        with torch.no_grad():
+                val_loss, val_perplexity = evaluate(
+                    model, valid_loader, max_batches=None, device=device
+                ) 
+        val_losses.append(val_loss)
+        val_perplexities.append(val_perplexity)
+            
         if rank == 0:
             print(
-                f"Epoch {epoch + 1} completed | "
-                f"avg_train_loss {avg_loss:.4f} | "
-                f"avg_train_perplexity {avg_perplexity:.4f}"
+                f"Epoch {epoch + 1}/{config.max_epochs} | "
+                f"Train Loss: {avg_loss:.4f} | Train Perplexity: {avg_perplexity:.4f} | "
+                f"Val Loss: {val_loss:.4f} | Val Perplexity: {val_perplexity:.4f}"
             )
-    
+            
     # Final summary
     if rank == 0:
         if torch.cuda.is_available():
@@ -127,6 +145,13 @@ def main():
         print(f"Total Training Time: {total_time:.2f} seconds")
         print("========== Training completed ==========")
 
+        plot_metrics(
+            train_losses,
+            val_losses,
+            train_perplexities,
+            val_perplexities
+        )
+        
         # Save checkpoint
         save_path = "checkpoints/final_model.pt"
         os.makedirs(os.path.dirname(save_path), exist_ok=True)

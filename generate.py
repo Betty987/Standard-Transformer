@@ -5,7 +5,7 @@ from tokenizers import Tokenizer
 import torch.distributed as dist
 from torch.nn.parallel import DistributedDataParallel as DDP
 
-from utils.model_utils import setup_device, load_model, decode_ids
+from utils.model_utils import setup_device, load_model, decode_ids, set_seed
 from model_architecture.config import GPTConfig
 from data_preparation.config import vocab_size
 
@@ -68,6 +68,7 @@ def text_generation(model, config, input_ids, device, num_samples, max_new_token
     return decoded_outputs
 
 def main():
+    set_seed(42)
     parser = argparse.ArgumentParser()
     parser.add_argument('--flash', action='store_true', 
                         help='Enable FlashAttention for attention layers')
